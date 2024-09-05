@@ -51,7 +51,7 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -X POST \
-          -d "{\"content\": \"🚀 Client 배포가 성공적으로 완료되었습니다!\"}" \
+          -d "{\"content\": \"🚀 AI Server 배포가 성공적으로 완료되었습니다!\"}" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
 
       # 7. 실패 시 디스코드 알림
@@ -60,5 +60,5 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -X POST \
-          -d "{\"content\": \"❌ Client 배포가 실패했습니다. 문제가 발생했습니다.\"}" \
+          -d "{\"content\": \"❌ AI Server 배포가 실패했습니다. 문제가 발생했습니다.\"}" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
