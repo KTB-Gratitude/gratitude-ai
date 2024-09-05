@@ -44,3 +44,21 @@ jobs:
             docker rm fastapi-container || true
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/my-fastapi-app:latest
             docker run -d -p 8000:8000 --name fastapi-container ${{ secrets.DOCKERHUB_USERNAME }}/my-fastapi-app:latest
+
+      # 6. 성공 시 디스코드 알림
+      - name: Send success Discord notification
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{\"content\": \"🚀 Client 배포가 성공적으로 완료되었습니다!\"}" \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      # 7. 실패 시 디스코드 알림
+      - name: Send failure Discord notification
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{\"content\": \"❌ Client 배포가 실패했습니다. 문제가 발생했습니다.\"}" \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
