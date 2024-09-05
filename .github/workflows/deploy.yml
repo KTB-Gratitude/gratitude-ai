@@ -1,0 +1,64 @@
+name: Deploy FastAPI App to Docker Hub
+
+on:
+  push:
+    branches:
+      - main  # main 브랜치에 푸시될 때 실행
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. GitHub 리포지토리에서 소스 코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Docker Hub 로그인
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Docker 이미지 빌드 및 태그 지정
+      - name: Build and tag Docker image
+        run: |
+          docker build -t my-fastapi-app .
+          docker tag my-fastapi-app ${{ secrets.DOCKERHUB_USERNAME }}/my-fastapi-app:latest
+
+      # 4. Docker Hub에 이미지 푸시
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-fastapi-app:latest
+
+      # 5. SSH로 서버에 접속하여 Docker 이미지 배포
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}   # GitHub Secrets에서 서버 IP 가져옴
+          username: ${{ secrets.SERVER_USER }} # GitHub Secrets에서 사용자 이름 가져옴
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # GitHub Secrets에서 SSH 비밀키 가져옴
+          port: 22
+          script: |
+            docker stop fastapi-container || true
+            docker rm fastapi-container || true
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/my-fastapi-app:latest
+            docker run -d -p 8000:8000 --name fastapi-container ${{ secrets.DOCKERHUB_USERNAME }}/my-fastapi-app:latest
+
+      # 6. 성공 시 디스코드 알림
+      - name: Send success Discord notification
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{\"content\": \"🚀 AI Server 배포가 성공적으로 완료되었습니다!\"}" \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      # 7. 실패 시 디스코드 알림
+      - name: Send failure Discord notification
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{\"content\": \"❌ AI Server 배포가 실패했습니다. 문제가 발생했습니다.\"}" \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
