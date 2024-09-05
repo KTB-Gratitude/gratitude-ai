@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
@@ -9,6 +11,21 @@ router = APIRouter()
 class Diary(BaseModel):
     content: str
 
+
+# JSON 데이터 로드
+try:
+    with open(r"data/emotionTypeDescriptions.json", "r") as f:
+        emotionTypeDescriptions = json.load(f)
+except FileNotFoundError:
+    emotionTypeDescriptions = {}
+    print("Error : ", "emotionTypeDescriptions.json 가 없음")
+
+try:
+    with open(r"data/typeDescription.json", "r") as f:
+        typeDescriptions = json.load(f)
+except FileNotFoundError:
+    typeDescriptions = {}
+    print("Error : ", "typeDescription.json 가 없음")
 
 @router.post("/analysis")
 async def analysis_router(diary: Diary):
