@@ -1,0 +1,7 @@
+
+POST localhost:8000/analysis
+Content-Type: application/json
+
+{
+  "content": "test"
+}
