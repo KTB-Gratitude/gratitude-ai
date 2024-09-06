@@ -1,6 +1,5 @@
 import json
 import os
-from idlelib.iomenu import encoding
 from fastapi import HTTPException
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -25,13 +24,15 @@ try:
 except FileNotFoundError:
     emotionTypeDescriptions = {}
     print("Error : emotionTypeDescriptions.json 파일을 찾을 수 없습니다.")
+    raise HTTPException(status_code=400, detail="emotionTypeDescriptions.json 파일을 찾을 수 없습니다.")
 
 try:
     with open(os.path.join(data_dir, "typeDescription.json"), "r", encoding="utf-8") as f:
         typeDescriptions = json.load(f)
 except FileNotFoundError:
-    typeDescriptions = {}
     print("Error : typeDescription.json 파일을 찾을 수 없습니다.")
+    raise HTTPException(status_code=400, detail="typeDescription.json 파일을 찾을 수 없습니다.")
+
 
 def get_default_response():
     return {
@@ -52,12 +53,15 @@ def get_default_response():
         "happy": {"per": 0}
     }
 
+
 def get_default_type_data():
     return {
         "type": "N",  # Neutral
         "per": 100,
         "desc": "분석할 수 없습니다."
     }
+
+
 @router.post("/analysis")
 async def analysis_router(diary: Diary) -> JSONResponse:
     content = diary.content
@@ -65,7 +69,6 @@ async def analysis_router(diary: Diary) -> JSONResponse:
         return JSONResponse({"error": "본문이 비어있습니다.", "content": content}, status_code=400)
     try:
         response = json.loads(analysis(content))
-        print(response)
 
         if not response or "rjmd" not in response:
             # 기본값 설정
@@ -88,19 +91,15 @@ async def analysis_router(diary: Diary) -> JSONResponse:
         raise HTTPException(status_code=500, detail="분석 결과를 JSON으로 파싱하는데 실패했습니다.")
     except Exception as e:
         error_message = str(e)
-        print(error_message)
         if "Message content must be non-empty" in error_message:
             raise HTTPException(status_code=400, detail="분석할 내용이 비어 있습니다. 유효한 텍스트를 입력해 주세요.")
         elif "invalid_request_error" in error_message:
             raise HTTPException(status_code=400, detail="잘못된 요청입니다. 입력 내용을 확인해 주세요.")
         else:
             raise HTTPException(status_code=500, detail=f"일기 분석 중 오류가 발생했습니다: {error_message}")
-    response_data = JSONResponse(
+
+    return JSONResponse(
         content=response,
         media_type="application/json",
         headers={"Content-Type": "application/json; charset=utf-8"}, status_code=200
     )
-    decoded_string = json.dumps(response_data.body.decode('utf-8'))
-    print(decoded_string)
-
-    return response_data
