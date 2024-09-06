@@ -13,9 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # tkinter 설치
 RUN apt-get update && apt-get install -y python3-tk
 
-# .env 파일을 컨테이너로 복사
-COPY .env /app/
-
 # FastAPI 애플리케이션 파일을 복사
 COPY . /app
 
