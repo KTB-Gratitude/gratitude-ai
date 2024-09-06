@@ -41,6 +41,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}  # GitHub Secrets에서 SSH 비밀키 가져옴
           port: 22
           script: |
+            cd /home/ubuntu/gratitude-ai
             docker stop fastapi-container || true
             docker rm fastapi-container || true
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/my-fastapi-app:latest
