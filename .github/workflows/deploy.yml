@@ -14,9 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. 변경된 파일 목록 출력
-      - name: Show changed files
-        run: git diff --name-only HEAD^ HEAD
 
       # 4. Docker Hub 로그인
       - name: Log in to Docker Hub
